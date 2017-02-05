@@ -13,36 +13,24 @@ FILE* output;			// ponteiro para arquivo de saída
 // R[34] = ER (Extension Register)
 // R[35] = FR (Flag Register)
 
-void registerName (int n, char* reg) {
+void registerName (unsigned int n, char* reg) {
 	
-	// armazena números de até dois digitos
-	char num[3];
-	num[2] = '\0';
-	
-	// armazena o nome do registrador com até 3 caracteres
-	char name[4];
-
 	switch (n) {
 		case 32:
-			strcpy(name, "pc\0");
+			sprintf(reg, "pc");
 			break;
 		case 33:
-			strcpy(name, "ir\0");
+			sprintf(reg, "ir");
 			break;
 		case 34:
-			strcpy(name, "er\0");
+			sprintf(reg, "er");
 			break;
 		case 35:
-			strcpy(name, "fr\0");
+			sprintf(reg, "fr");
 			break;
 		default:
-			itoa(n, num, 10);
-			name[0] = 'r';
-			strcat(name, num);
-			name[3] = '\0';
+			sprintf(reg, "r%d", n);
 	}
-	
-	strcpy(reg, name);
 }
 
 void _add (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -59,11 +47,19 @@ void _add (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "add r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] FR = 0x%08X, R%d = R%d + R%d = 0x%08X\n", R[35], Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "add %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] FR = 0x%08X, %s = %s + %s = 0x%08X\n",
+	R[35], strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _addi (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -80,11 +76,17 @@ void _addi (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "addi r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] FR = 0x%08X, R%d = R%d + 0x%04X = 0x%08X\n", R[35], X, Y, IM16, R[X]);	
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "addi %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] FR = 0x%08X, %s = %s + 0x%04X = 0x%08X\n",
+	R[35], strupr(reg_x), strupr(reg_y), IM16, R[X]);	
 }
 
 void _sub (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -101,11 +103,19 @@ void _sub (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "sub r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] FR = 0x%08X, R%d = R%d - R%d = 0x%08X\n", R[35], Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "sub %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] FR = 0x%08X, %s = %s - %s = 0x%08X\n",
+	R[35], strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _subi (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -122,11 +132,17 @@ void _subi (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "subi r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] FR = 0x%08X, R%d = R%d - 0x%04X = 0x%08X\n", R[35], X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "subi %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] FR = 0x%08X, %s = %s - 0x%04X = 0x%08X\n",
+	R[35], strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _mul (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -143,11 +159,19 @@ void _mul (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "mul r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] FR = 0x%08X, ER = 0x%08X, R%d = R%d * R%d = 0x%08X\n", R[35], R[34], Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "mul %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] FR = 0x%08X, ER = 0x%08X, %s = %s * %s = 0x%08X\n",
+	R[35], R[34], strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _muli (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -164,11 +188,17 @@ void _muli (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[35] = R[35] | 0x10;
 	} else {
 		// Apaga o campo OV do FR
-		R[35] = R[35] & 0x0F;
+		R[35] = R[35] & 0xFFFFFFEF;
 	}
 	
-	fprintf(output, "muli r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] FR = 0x%08X, ER = 0x%08X, R%d = R%d * 0x%04X = 0x%08X\n", R[35], R[34], X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "muli %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] FR = 0x%08X, ER = 0x%08X, %s = %s * 0x%04X = 0x%08X\n",
+	R[35], R[34], strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _div (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -182,11 +212,19 @@ void _div (unsigned int Z, unsigned int X, unsigned int Y) {
 			R[Z] = R[X] / R[Y];
 		}
 		// Apaga o campo ZD do FR
-		R[35] = R[35] & 0x17;
+		R[35] = R[35] & 0xFFFFFFF7;
 	}
+
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
 	
-	fprintf(output, "div r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] FR = 0x%08X, ER = 0x%08X, R%d = R%d / R%d = 0x%08X\n", R[35], R[34], Z, X, Y, R[Z]);
+	fprintf(output, "div %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] FR = 0x%08X, ER = 0x%08X, %s = %s / %s = 0x%08X\n",
+	R[35], R[34], strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _divi (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -200,11 +238,17 @@ void _divi (unsigned int IM16, unsigned int X, unsigned int Y) {
 			R[X] = R[Y] / IM16;
 		}
 		// Apaga o campo ZD do FR
-		R[35] = R[35] & 0x17;
+		R[35] = R[35] & 0xFFFFFFF7;
 	}
 	
-	fprintf(output, "divi r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] FR = 0x%08X, ER = 0x%08X, R%d = R%d / 0x%04X = 0x%08X\n", R[35], R[34], X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "divi %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] FR = 0x%08X, ER = 0x%08X, %s = %s / 0x%04X = 0x%08X\n",
+	R[35], R[34], strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _cmp (unsigned int X, unsigned int Y) {
@@ -218,7 +262,12 @@ void _cmp (unsigned int X, unsigned int Y) {
 	else
 		R[35] = R[35] | 0x04;	// GT = 100
 	
-	fprintf(output, "cmp r%d, r%d\n", X, Y);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "cmp %s, %s\n", reg_x, reg_y);
 	fprintf(output, "[U] FR = 0x%08X\n", R[35]);
 }
 
@@ -233,7 +282,10 @@ void _cmpi (unsigned int X, unsigned int IM16) {
 	else
 		R[35] = R[35] | 0x04;	// GT = 100
 	
-	fprintf(output, "cmpi r%d, %d\n", X, IM16);
+	char reg_x[4];
+	registerName(X, reg_x);
+	
+	fprintf(output, "cmpi %s, %d\n", reg_x, IM16);
 	fprintf(output, "[F] FR = 0x%08X\n", R[35]);
 }
 
@@ -246,9 +298,15 @@ void _shl (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[Z] = (x & 0xFFFFFFFF);
 	}
 	R[34] = (x & 0xFFFFFFFF00000000) >> 32;
-
-	fprintf(output, "shl r%d, r%d, %d\n", Z, X, Y);
-	fprintf(output, "[U] ER = 0x%08X, R%d = R%d << %d = 0x%08X\n", R[34], Z, X, (Y + 1), R[Z]);
+	
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	
+	fprintf(output, "shl %s, %s, %d\n", reg_z, reg_x, Y);
+	fprintf(output, "[U] ER = 0x%08X, %s = %s << %d = 0x%08X\n",
+	R[34], strupr(reg_z), strupr(reg_x), (Y + 1), R[Z]);
 }
 
 void _shr (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -260,9 +318,15 @@ void _shr (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[Z] = (x & 0xFFFFFFFF);
 	}
 	R[34] = (x & 0xFFFFFFFF00000000) >> 32;
-
-	fprintf(output, "shr r%d, r%d, %d\n", Z, X, Y);
-	fprintf(output, "[U] ER = 0x%08X, R%d = R%d >> %d = 0x%08X\n", R[34], Z, X, (Y + 1), R[Z]);
+	
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	
+	fprintf(output, "shr %s, %s, %d\n", reg_z, reg_x, Y);
+	fprintf(output, "[U] ER = 0x%08X, %s = %s >> %d = 0x%08X\n",
+	R[34], strupr(reg_z), strupr(reg_x), (Y + 1), R[Z]);
 }
 
 void _and (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -271,8 +335,16 @@ void _and (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[Z] = R[X] & R[Y];
 	}
 	
-	fprintf(output, "and r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] R%d = R%d & R%d = 0x%08X\n", Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "and %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] %s = %s & %s = 0x%08X\n",
+	strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _andi (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -281,8 +353,14 @@ void _andi (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[X] = R[Y] & IM16;
 	}
 	
-	fprintf(output, "andi r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = R%d & 0x%04X = 0x%08X\n", X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "andi %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = %s & 0x%04X = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _not (unsigned int X, unsigned int Y) {
@@ -291,8 +369,14 @@ void _not (unsigned int X, unsigned int Y) {
 		R[X] = ~R[Y];
 	}
 	
-	fprintf(output, "not r%d, r%d\n", X, Y);
-	fprintf(output, "[U] R%d = ~R%d = 0x%08X\n", X, Y, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "not %s, %s\n", reg_x, reg_y);
+	fprintf(output, "[U] %s = ~%s = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), R[X]);
 }
 
 void _noti (unsigned int IM16, unsigned int X) {
@@ -301,8 +385,11 @@ void _noti (unsigned int IM16, unsigned int X) {
 		R[X] = ~IM16;
 	}
 	
-	fprintf(output, "noti r%d, %d\n", X, IM16);
-	fprintf(output, "[F] R%d = ~0x%04X = 0x%08X\n", X, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	
+	fprintf(output, "noti %s, %d\n", reg_x, IM16);
+	fprintf(output, "[F] %s = ~0x%04X = 0x%08X\n", strupr(reg_x), IM16, R[X]);
 }
 
 void _or (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -311,8 +398,16 @@ void _or (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[Z] = R[X] | R[Y];
 	}
 	
-	fprintf(output, "or r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] R%d = R%d | R%d = 0x%08X\n", Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "or %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] %s = %s | %s = 0x%08X\n",
+	strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _ori (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -321,8 +416,14 @@ void _ori (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[X] = R[Y] | IM16;
 	}
 	
-	fprintf(output, "ori r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = R%d | 0x%04X = 0x%08X\n", X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "ori %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = %s | 0x%04X = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _xor (unsigned int Z, unsigned int X, unsigned int Y) {
@@ -331,8 +432,16 @@ void _xor (unsigned int Z, unsigned int X, unsigned int Y) {
 		R[Z] = R[X] ^ R[Y];
 	}
 	
-	fprintf(output, "xor r%d, r%d, r%d\n", Z, X, Y);
-	fprintf(output, "[U] R%d = R%d ^ R%d = 0x%08X\n", Z, X, Y, R[Z]);
+	char reg_z[4];
+	registerName(Z, reg_z);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "xor %s, %s, %s\n", reg_z, reg_x, reg_y);
+	fprintf(output, "[U] %s = %s ^ %s = 0x%08X\n",
+	strupr(reg_z), strupr(reg_x), strupr(reg_y), R[Z]);
 }
 
 void _xori (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -341,8 +450,14 @@ void _xori (unsigned int IM16, unsigned int X, unsigned int Y) {
 		R[X] = R[Y] ^ IM16;
 	}
 	
-	fprintf(output, "xori r%d, r%d, %d\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = R%d ^ 0x%04X = 0x%08X\n", X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "xori %s, %s, %d\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = %s ^ 0x%04X = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _ldw (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -350,9 +465,15 @@ void _ldw (unsigned int IM16, unsigned int X, unsigned int Y) {
 	if (X != 0) {
 		R[X] = mem[R[Y] + IM16];
 	}
-
-	fprintf(output, "ldw r%d, r%d, 0x%04X\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = MEM[(R%d + 0x%04X) << 2] = 0x%08X\n", X, Y, IM16, R[X]);
+	
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "ldw %s, %s, 0x%04X\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = MEM[(%s + 0x%04X) << 2] = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _ldb (unsigned int IM16, unsigned int X, unsigned int Y) {
@@ -373,33 +494,57 @@ void _ldb (unsigned int IM16, unsigned int X, unsigned int Y) {
 		}
 	}
 	
-	fprintf(output, "ldb r%d, r%d, 0x%04X\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = MEM[R%d + 0x%04X] = 0x%02X\n", X, Y, IM16, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "ldb %s, %s, 0x%04X\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = MEM[%s + 0x%04X] = 0x%02X\n",
+	strupr(reg_x), strupr(reg_y), IM16, R[X]);
 }
 
 void _stw (unsigned int IM16, unsigned int X, unsigned int Y) {
 
 	mem[R[X] + IM16] = R[Y];
 	
-	fprintf(output, "stw r%d, 0x%04X, r%d\n", X, IM16, Y);
-	fprintf(output, "[F] MEM[(R%d + 0x%04X) << 2] = R%d = 0x%08X\n", X, IM16, Y, mem[R[X] + IM16]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "stw %s, 0x%04X, %s\n", reg_x, IM16, reg_y);
+	fprintf(output, "[F] MEM[(%s + 0x%04X) << 2] = %s = 0x%08X\n",
+	strupr(reg_x), IM16, strupr(reg_y), mem[R[X] + IM16]);
 }
 
 void _stb (unsigned int IM16, unsigned int X, unsigned int Y) {
 	
 	mem[(R[X] + IM16) >> 2] = R[Y];
 	
-	fprintf(output, "stb r%d, 0x%04X, r%d\n", X, IM16, Y);
-	fprintf(output, "[F] MEM[R%d + 0x%04X] = R%d = 0x%02X\n", X, IM16, Y, mem[(R[X] + IM16) >> 2]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "stb %s, 0x%04X, %s\n", reg_x, IM16, reg_y);
+	fprintf(output, "[F] MEM[%s + 0x%04X] = %s = 0x%02X\n",
+	strupr(reg_x), IM16, strupr(reg_y), mem[(R[X] + IM16) >> 2]);
 }
 
 void _push (unsigned int X, unsigned int Y) {
 	
 	R[X]--;
 	mem[R[X]] = R[Y];
-
-	fprintf(output, "push r%d, r%d\n", X, Y);
-	fprintf(output, "[U] MEM[R%d--] = R%d = 0x%08X\n", X, Y, mem[R[X]]);
+	
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "push %s, %s\n", reg_x, reg_y);
+	fprintf(output, "[U] MEM[%s--] = %s = 0x%08X\n",
+	strupr(reg_x), strupr(reg_y), mem[R[X]]);
 }
 
 void _pop (unsigned int X, unsigned int Y) {
@@ -408,8 +553,13 @@ void _pop (unsigned int X, unsigned int Y) {
 		R[X] = mem[R[Y]++];
 	}
 	
-	fprintf(output, "pop r%d, r%d\n", X, Y);
-	fprintf(output, "[U] R%d = MEM[++R%d] = 0x%08X\n", X, Y, R[X]);
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "pop %s, %s\n", reg_x, reg_y);
+	fprintf(output, "[U] %s = MEM[++%s] = 0x%08X\n", strupr(reg_x), strupr(reg_y), R[X]);
 }
 
 void _bun (unsigned int IM26) {
@@ -493,16 +643,25 @@ void _call (unsigned int IM16, unsigned int X, unsigned int Y) {
 	}
 	R[32] = R[Y] + IM16;
 	
-	fprintf(output, "call r%d, r%d, 0x%04X\n", X, Y, IM16);
-	fprintf(output, "[F] R%d = (PC + 4) >> 2 = 0x%08X, PC = (R%d + 0x%04X) << 2 = 0x%08X\n", X, R[X], Y, IM16, R[32] * 4);	
+	char reg_x[4];
+	registerName(X, reg_x);
+	char reg_y[4];
+	registerName(Y, reg_y);
+	
+	fprintf(output, "call %s, %s, 0x%04X\n", reg_x, reg_y, IM16);
+	fprintf(output, "[F] %s = (PC + 4) >> 2 = 0x%08X, PC = (%s + 0x%04X) << 2 = 0x%08X\n",
+	strupr(reg_x), R[X], strupr(reg_y), IM16, R[32] * 4);	
 }
 
 void _ret (unsigned int X) {
 	
 	R[32] = R[X];
-
-	fprintf(output, "ret r%d\n", X);
-	fprintf(output, "[F] PC = R%d << 2 = 0x%08X\n", X, R[32] * 4);
+	
+	char reg_x[4];
+	registerName(X, reg_x);
+	
+	fprintf(output, "ret %s\n", reg_x);
+	fprintf(output, "[F] PC = %s << 2 = 0x%08X\n", strupr(reg_x), R[32] * 4);
 }
 
 int _int (unsigned int IM26) {
@@ -521,8 +680,8 @@ int _int (unsigned int IM26) {
 
 int main (int argc, char* argv[]) {
 	
-	input = fopen("limits.in", "r");
-	output = fopen("limits.out", "w");
+	input = fopen(argv[1], "r");
+	output = fopen(argv[2], "w");
 	
 	mem = (uint32_t *) malloc(sizeof(uint32_t) * 128);
 	
@@ -682,6 +841,7 @@ int main (int argc, char* argv[]) {
 		if (!desvio)
 			R[32]++;
 	}
+	
 	fprintf(output, "[END OF SIMULATION]\n");
 	
 	fclose(input);
@@ -689,8 +849,3 @@ int main (int argc, char* argv[]) {
 	
 	return 0;
 }
-
-// O que falta
-/*
-	organizar nomes dos registradores
-*/
